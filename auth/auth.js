@@ -2,6 +2,8 @@ const express = require('express');
 const { commonMiddlewares, createRateLimiter } = require('../middleware/commonMiddleware');
 const { body, validationResult } = require('express-validator');
 const admin = require('../config/config');
+const axios = require('axios');
+require('dotenv').config();
 
 const authRouter = express.Router();
 
@@ -39,6 +41,25 @@ authRouter.post('/',
         const { email, passphrase } = req.body;
 
         try {
+            // Check if user already exists
+            let duplicateChecking;
+            try {
+                duplicateChecking = await admin.auth().getUserByEmail(email);
+            } catch (err) {
+                if (err.code === 'auth/user-not-found') {
+                    duplicateChecking = null; 
+                } else {
+                    throw err; 
+                }
+            }
+
+            if (duplicateChecking) {
+                return res.status(400).json({
+                error: true,
+                message: 'User already exists with this email.',
+                });
+            }
+
             // Add user data to Firestore auth
             const userRecord = await admin.auth().createUser({
                 email,
@@ -58,10 +79,22 @@ authRouter.post('/',
             // Generate a custom token for the newly created user
             const customToken = await admin.auth().createCustomToken(userRecord.uid);
 
+            // Exchange custom token for an ID token
+            const response = await axios.post(
+                `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${process.env.FIREBASE_API_KEY}`,
+                {
+                    token: customToken,
+                    returnSecureToken: true,
+                }
+            );
+
+            const idToken = response.data.idToken;
+
             res.status(201).json({
                 error: false,
                 message: 'Successfully created user by Firebase',
-                token: customToken
+                token: customToken,
+                idToken
             });
         } catch (err) {
             console.error(err);
