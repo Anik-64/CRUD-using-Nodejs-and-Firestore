@@ -120,7 +120,7 @@ userRouter.get('/:id',
         param('id')
             .isString().withMessage('ID must be a string')
             .trim().escape()
-            .isLength({ max: 20 }).withMessage('ID must be at most 20 characters long')
+            .isLength({ max: 30 }).withMessage('ID must be at most 30 characters long')
             .customSanitizer(value => xss(value)),
     ],
     async (req, res) => {
@@ -157,7 +157,7 @@ userRouter.put('/:id',
         param('id')
             .isString().withMessage('ID must be a string')
             .trim().escape()
-            .isLength({ max: 20 }).withMessage('ID must be at most 20 characters long')
+            .isLength({ max: 30 }).withMessage('ID must be at most 30 characters long')
             .customSanitizer(value => xss(value)),
         body('email')
             .optional()
@@ -241,7 +241,7 @@ userRouter.delete('/:id',
         param('id')
             .isString().withMessage('ID must be a string')
             .trim().escape()
-            .isLength({ max: 20 }).withMessage('ID must be at most 20 characters long')
+            .isLength({ max: 30 }).withMessage('ID must be at most 30 characters long')
             .customSanitizer(value => xss(value)),
     ],
     async (req, res) => {
