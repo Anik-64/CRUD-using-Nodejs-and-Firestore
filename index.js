@@ -1,10 +1,12 @@
 // Dependencies
 const express = require('express');
-const morgan = require("morgan");
+const morgan = require('morgan');
 const cors = require('cors');
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
+const authenticateFirebaseToken = require('./auth/authMiddleware/authMiddleware');
 const userRoute = require('./server/user');
+const authRoute = require('./auth/auth');
 
 require('dotenv').config();
 
@@ -14,12 +16,12 @@ app.use(express.json());
 const corsOptions = {
     // origin: (origin, callback) => {
     //   const allowedOrigins = [
-    //     "https://localhost:8081",
+    //     'https://localhost:8081',
     //   ];
     //   if (!origin || allowedOrigins.indexOf(origin) !== -1) {
     //     callback(null, true);
     //   } else {
-    //     callback(new Error("Not allowed by CORS"));
+    //     callback(new Error('Not allowed by CORS'));
     //   }
     // },
     origin: '*',
@@ -50,8 +52,11 @@ app.get('/', (req, res) => {
     }
 });
 
+// Auth
+app.use('/api/auth', authRoute);
+
 // Routers
-app.use('/api/user', userRoute);
+app.use('/api/user', authenticateFirebaseToken, userRoute);
 
 // Start the server
 app.listen(process.env.PORT, () => {
